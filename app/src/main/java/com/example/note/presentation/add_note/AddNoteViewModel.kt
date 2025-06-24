@@ -1,6 +1,7 @@
 package com.example.note.presentation.add_note
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.note.data.utils.ImageUtils
@@ -41,8 +42,11 @@ class AddNoteViewModel @Inject constructor(
         _state.value = _state.value.copy(content = content)
     }
 
-    private fun selectImage(uri: android.net.Uri?) {
+    private fun selectImage(uri: Uri?) {
         _state.value = _state.value.copy(selectedImageUri = uri)
+        if (uri == null) {
+            _state.value = _state.value.copy(error = null)
+        }
     }
 
     private fun saveNote() {

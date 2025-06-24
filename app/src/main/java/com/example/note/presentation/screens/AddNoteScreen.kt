@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.note.presentation.add_note.AddNoteIntent
 import com.example.note.presentation.add_note.AddNoteViewModel
+import com.example.note.presentation.components.ImagePicker
 
 @Composable
 fun AddNoteScreen(
@@ -74,13 +79,71 @@ fun AddNoteScreen(
             )
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
         OutlinedTextField(
             value = state.title,
             onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateTitle(it)) },
             label = { Text("Title") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            enabled = !state.isLoading
+            enabled = !state.isLoading,
+            shape = RoundedCornerShape(12.dp)
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = state.content,
+            onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateContent(it)) },
+            label = {Text("Content")},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            minLines = 8,
+            enabled = !state.isLoading,
+            shape = RoundedCornerShape(12.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ImagePicker(
+            selectedImageUri = state.selectedImageUri,
+            onImageSelected = { uri ->
+                viewModel.handleIntent(AddNoteIntent.SelectImage(uri))
+            }
+        )
+
+        IconButton(
+            onClick = { viewModel.handleIntent(AddNoteIntent.SaveNote) },
+            enabled = !state.isLoading && state.title.isNotBlank()
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Save Note"
+                )
+            }
+        }
+
+        state.error?.let { error ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = error,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
     }
 }
