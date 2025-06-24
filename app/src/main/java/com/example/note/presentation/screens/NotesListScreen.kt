@@ -1,10 +1,15 @@
 package com.example.note.presentation.screens
 
+import CustomSearchBar
 import NoteCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -14,15 +19,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-
 @Composable
-fun NotesListScreen() {
+fun NotesListScreen(
+    onAddNoteClick: () -> Unit
+) {
     val notes = listOf(
         NoteCardData("Balance", "When a design is unbalanced...When a design is unbalanced...When a design is unbalanced...", "Design", "Sun, 16:32", null),
         NoteCardData("Tasks", "✓ Learn new things\n✓ Design things\n◻ Share work", "Todo", "Sun, 16:32",2),
@@ -36,35 +45,51 @@ fun NotesListScreen() {
         NoteCardData("Symmetry", "Can occur in any orientation...", "Theory", "Sun, 17:15", 5),
     )
 
-    Box(
-        modifier = Modifier.fillMaxWidth()
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 15.dp, vertical = 25.dp),
     ) {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalItemSpacing = 10.dp,
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            items(notes) { note ->
-                NoteCardItem(note)
-            }
-        }
+        Text(
+            text = "Notes",
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 15.dp)
+        )
 
-        FloatingActionButton(
-            onClick = {},
-            containerColor = Color(0xFF3269FF),
-            contentColor = Color.White,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp)
+        CustomSearchBar()
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add Note"
-            )
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalItemSpacing = 10.dp,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                items(notes) { note ->
+                    NoteCardItem(note)
+                }
+            }
+
+            FloatingActionButton(
+                onClick = onAddNoteClick,
+                containerColor = Color(0xFF3269FF),
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Note"
+                )
+            }
         }
     }
 }
