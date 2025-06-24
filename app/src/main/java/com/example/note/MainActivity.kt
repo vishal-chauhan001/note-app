@@ -14,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import com.example.note.presentation.screens.NotesListScreen
 import com.example.note.ui.theme.NoteTheme
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.note.presentation.screens.AddNoteScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -57,12 +59,22 @@ fun NotesApp() {
         composable("notes-list") {
             NotesListScreen(
                 onAddNoteClick = {
-                    navController.navigate("add-note")
+                    navController.navigate("add-note/-1")
+                },
+                onNavigateToEditNote = { noteId ->
+                    navController.navigate("add-note/$noteId")
                 }
             )
         }
 
-        composable("add-note") {
+        composable(
+            route = "add-note/{noteId}",
+            arguments = listOf(
+                navArgument("noteId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )) {
             AddNoteScreen(
                 onBackClick = {
                     navController.popBackStack()

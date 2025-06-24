@@ -2,11 +2,14 @@ package com.example.note.presentation.add_note
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.note.data.utils.ImageUtils
 import com.example.note.domain.model.Note
 import com.example.note.domain.usecase.AddNoteUseCase
+import com.example.note.domain.usecase.GetNoteByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,19 +21,53 @@ import javax.inject.Inject
 @HiltViewModel
 class AddNoteViewModel @Inject constructor(
     private val addNoteUseCase: AddNoteUseCase,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val getNoteByIdUseCase: GetNoteByIdUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddNoteState())
     val state: StateFlow<AddNoteState> = _state.asStateFlow()
 
+    init {
+        val noteId = savedStateHandle.get<Long>("noteId")
+        if (noteId != null && noteId != -1L) {
+            _state.value = _state.value.copy(noteId = noteId, isEditMode = true)
+            handleIntent(AddNoteIntent.LoadNote(noteId))
+        }
+    }
+
     fun handleIntent(intent: AddNoteIntent) {
         when (intent) {
+            is AddNoteIntent.LoadNote -> loadNote(intent.noteId)
             is AddNoteIntent.UpdateTitle -> updateTitle(intent.title)
             is AddNoteIntent.UpdateContent -> updateContent(intent.content)
             is AddNoteIntent.SelectImage -> selectImage(intent.uri)
             is AddNoteIntent.SaveNote -> saveNote()
             is AddNoteIntent.ClearError -> clearError()
+        }
+    }
+
+    private fun loadNote(noteId: Long) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoadingNote = true, error = null)
+
+            getNoteByIdUseCase(noteId)
+                .onSuccess { note ->
+                    note?.let {
+                        _state.value = _state.value.copy(
+                            title = it.title,
+                            content = it.content,
+                            selectedImageUri = it.imagePath?.toUri(),
+                            isLoadingNote = false
+                        )
+                    } ?: run {
+                        _state.value = _state.value.copy(
+                            isLoadingNote = false,
+                            error = "Note not found"
+                        )
+                    }
+                }
         }
     }
 

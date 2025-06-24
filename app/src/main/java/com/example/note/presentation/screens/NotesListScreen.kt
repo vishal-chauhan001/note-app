@@ -39,21 +39,9 @@ import com.example.note.presentation.notes.NotesViewModel
 @Composable
 fun NotesListScreen(
     onAddNoteClick: () -> Unit,
+    onNavigateToEditNote: (Long) -> Unit,
     viewModel: NotesViewModel = hiltViewModel()
 ) {
-    val notes = listOf(
-        NoteCardData("Balance", "When a design is unbalanced...When a design is unbalanced...When a design is unbalanced...", "Design", "Sun, 16:32", null),
-        NoteCardData("Tasks", "✓ Learn new things\n✓ Design things\n◻ Share work", "Todo", "Sun, 16:32",2),
-        NoteCardData("Travel", "Perfect time to finally create a list.\n✓ Canada\n✓ Finland", "Travel", "Sun, 8:48", 3),
-        NoteCardData("Similarity", "Elements that share similar properties...", "Design", "Sun, 17:00", null),
-        NoteCardData("Symmetry", "Can occur in any orientation...", "Theory", "Sun, 17:15", 5),
-        NoteCardData("Balance", "When a design is unbalanced...When a design is unbalanced...When a design is unbalanced...", "Design", "Sun, 16:32", 1),
-        NoteCardData("Tasks", "✓ Learn new things\n✓ Design things\n◻ Share work", "Todo", "Sun, 16:32",2),
-        NoteCardData("Travel", "Perfect time to finally create a list.\n✓ Canada\n✓ Finland", "Travel", "Sun, 8:48", null),
-        NoteCardData("Similarity", "Elements that share similar properties...", "Design", "Sun, 17:00", 4),
-        NoteCardData("Symmetry", "Can occur in any orientation...", "Theory", "Sun, 17:15", 5),
-    )
-
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Column (
@@ -146,6 +134,9 @@ fun NotesListScreen(
                                 category = null,
                                 timestamp = note.updatedAt,
                                 imagePath = note.imagePath,
+                                onNoteClick = {
+                                    onNavigateToEditNote(note.id)
+                                }
                             )
                         }
                     }
@@ -168,16 +159,4 @@ fun NotesListScreen(
             }
         }
     }
-}
-
-data class NoteCardData(
-    val title: String,
-    val description: String,
-    val category: String,
-    val timestamp: String,
-    val imageResourceId: Int? = null
-)
-
-@Composable
-fun NoteCardItem(note: NoteCardData) {
 }

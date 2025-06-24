@@ -1,6 +1,7 @@
 package com.example.note.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -73,61 +74,74 @@ fun AddNoteScreen(
                 )
             }
             Text(
-                text = "Add Note",
+                text = if (state.isEditMode) "Edit Note" else "Add Note",
                 modifier = Modifier.padding(horizontal = 15.dp),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = state.title,
-            onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateTitle(it)) },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = !state.isLoading,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = state.content,
-            onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateContent(it)) },
-            label = {Text("Content")},
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            minLines = 8,
-            enabled = !state.isLoading,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ImagePicker(
-            selectedImageUri = state.selectedImageUri,
-            onImageSelected = { uri ->
-                viewModel.handleIntent(AddNoteIntent.SelectImage(uri))
+        if(state.isLoadingNote) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-        )
+        } else {
+            Column (
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Spacer(modifier = Modifier.height(10.dp))
 
-        IconButton(
-            onClick = { viewModel.handleIntent(AddNoteIntent.SaveNote) },
-            enabled = !state.isLoading && state.title.isNotBlank()
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
+                OutlinedTextField(
+                    value = state.title,
+                    onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateTitle(it)) },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !state.isLoading,
+                    shape = RoundedCornerShape(12.dp)
                 )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Save Note"
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = state.content,
+                    onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateContent(it)) },
+                    label = {Text("Content")},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    minLines = 8,
+                    enabled = !state.isLoading,
+                    shape = RoundedCornerShape(12.dp)
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ImagePicker(
+                    selectedImageUri = state.selectedImageUri,
+                    onImageSelected = { uri ->
+                        viewModel.handleIntent(AddNoteIntent.SelectImage(uri))
+                    }
+                )
+
+                IconButton(
+                    onClick = { viewModel.handleIntent(AddNoteIntent.SaveNote) },
+                    enabled = !state.isLoading && state.title.isNotBlank()
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Save Note"
+                        )
+                    }
+                }
             }
         }
 

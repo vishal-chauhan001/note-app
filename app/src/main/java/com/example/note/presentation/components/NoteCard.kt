@@ -1,3 +1,4 @@
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,10 +37,12 @@ fun NoteCard(
     category: String?,
     timestamp: Long,
     imagePath: String? = null,
+    onNoteClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onNoteClick() },
         shape = RoundedCornerShape(17.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF171C26)
