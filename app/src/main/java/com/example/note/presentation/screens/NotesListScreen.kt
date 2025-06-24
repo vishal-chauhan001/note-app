@@ -17,20 +17,31 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.note.presentation.add_note.AddNoteViewModel
+import com.example.note.presentation.notes.NotesIntent
+import com.example.note.presentation.notes.NotesViewModel
 
 @Composable
 fun NotesListScreen(
-    onAddNoteClick: () -> Unit
+    onAddNoteClick: () -> Unit,
+    viewModel: NotesViewModel = hiltViewModel()
 ) {
     val notes = listOf(
         NoteCardData("Balance", "When a design is unbalanced...When a design is unbalanced...When a design is unbalanced...", "Design", "Sun, 16:32", null),
@@ -44,6 +55,8 @@ fun NotesListScreen(
         NoteCardData("Similarity", "Elements that share similar properties...", "Design", "Sun, 17:00", 4),
         NoteCardData("Symmetry", "Can occur in any orientation...", "Theory", "Sun, 17:15", 5),
     )
+
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Column (
         modifier = Modifier
@@ -61,18 +74,83 @@ fun NotesListScreen(
         Spacer(modifier = Modifier.height(15.dp))
 
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalItemSpacing = 10.dp,
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                items(notes) { note ->
-                    NoteCardItem(note)
+            when {
+                state.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                state.error != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Error: ${state.error}",
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.handleIntent(NotesIntent.LoadNotes) }
+                            ) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+
+                state.notes.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No notes yet",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Tap the + button to create your first note",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                else -> {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(2),
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalItemSpacing = 10.dp,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        items(state.notes) { note ->
+                            NoteCard(
+                                title = note.title,
+                                description = note.content,
+                                category = null,
+                                timestamp = note.updatedAt,
+                                imagePath = note.imagePath,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -104,11 +182,4 @@ data class NoteCardData(
 
 @Composable
 fun NoteCardItem(note: NoteCardData) {
-    NoteCard(
-        title = note.title,
-        description = note.description,
-        category = note.category,
-        timestamp = note.timestamp,
-        imageResourceId = note.imageResourceId,
-    )
 }
