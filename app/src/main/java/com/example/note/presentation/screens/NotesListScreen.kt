@@ -136,6 +136,9 @@ fun NotesListScreen(
                                 imagePath = note.imagePath,
                                 onNoteClick = {
                                     onNavigateToEditNote(note.id)
+                                },
+                                onDeleteClick = {
+                                    viewModel.handleIntent(NotesIntent.DeleteNote(note))
                                 }
                             )
                         }

@@ -12,4 +12,6 @@ data class AddNoteState (
     val isNoteSaved: Boolean = false,
     val isLoadingNote: Boolean = false,
     val isEditMode: Boolean = false,
+    val currentImagePath: Uri? = null,
+    val isCurrentImageChanged: Boolean = false
 )

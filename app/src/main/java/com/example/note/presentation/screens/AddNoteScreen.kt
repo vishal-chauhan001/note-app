@@ -80,22 +80,22 @@ fun AddNoteScreen(
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(Modifier.weight(1f))
-            if(state.isEditMode) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(100.dp))
-                        .size(45.dp)
-                        .background(Color(0xFF171C26))
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "delete",
-                        tint = Color.White,
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-            }
+//            if(state.isEditMode) {
+//                IconButton(
+//                    onClick = onBackClick,
+//                    modifier = Modifier
+//                        .clip(RoundedCornerShape(100.dp))
+//                        .size(45.dp)
+//                        .background(Color(0xFF171C26))
+//                ) {
+//                    Icon(
+//                        imageVector = Icons.Outlined.Delete,
+//                        contentDescription = "delete",
+//                        tint = Color.White,
+//                        modifier = Modifier.size(25.dp)
+//                    )
+//                }
+//            }
         }
 
         if(state.isLoadingNote) {

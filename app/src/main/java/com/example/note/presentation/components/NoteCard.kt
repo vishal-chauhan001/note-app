@@ -6,9 +6,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +43,7 @@ fun NoteCard(
     timestamp: Long,
     imagePath: String? = null,
     onNoteClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -79,14 +85,34 @@ fun NoteCard(
             Column(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
-                // Title
-                Text(
-                    text = title,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Title with ellipsis
+                    Text(
+                        text = title,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier
+                            .size(20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "delete-note",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(6.dp))
 

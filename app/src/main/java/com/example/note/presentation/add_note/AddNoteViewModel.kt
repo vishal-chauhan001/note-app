@@ -10,6 +10,7 @@ import com.example.note.data.utils.ImageUtils
 import com.example.note.domain.model.Note
 import com.example.note.domain.usecase.AddNoteUseCase
 import com.example.note.domain.usecase.GetNoteByIdUseCase
+import com.example.note.domain.usecase.UpdateNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddNoteViewModel @Inject constructor(
     private val addNoteUseCase: AddNoteUseCase,
+    private val updateNoteUseCase: UpdateNoteUseCase,
     @ApplicationContext private val context: Context,
     private val getNoteByIdUseCase: GetNoteByIdUseCase,
     savedStateHandle: SavedStateHandle
@@ -59,6 +61,7 @@ class AddNoteViewModel @Inject constructor(
                             title = it.title,
                             content = it.content,
                             selectedImageUri = it.imagePath?.toUri(),
+                            currentImagePath = it.imagePath?.toUri(),
                             isLoadingNote = false
                         )
                     } ?: run {
@@ -98,26 +101,56 @@ class AddNoteViewModel @Inject constructor(
             _state.value = currentState.copy(isLoading = true, error = null)
 
             try {
-                val imagePath = currentState.selectedImageUri?.let { uri ->
-                    val fileName = "note_image_${System.currentTimeMillis()}.jpg"
-                    ImageUtils.saveImageToInternalStorage(context, uri, fileName)
+                val finalImagePath = when {
+                    currentState.selectedImageUri != null && currentState.isCurrentImageChanged -> {
+                        // New image selected
+                        val fileName = "note_image_${System.currentTimeMillis()}.jpg"
+                        val newImagePath = ImageUtils.saveImageToInternalStorage(
+                            context,
+                            currentState.selectedImageUri,
+                            fileName
+                        )
+
+                        if (newImagePath == null) {
+                            _state.value = currentState.copy(
+                                isLoading = false,
+                                error = "Image size exceeds 2MB limit"
+                            )
+                            return@launch
+                        }
+
+                        if (currentState.isEditMode) {
+                            ImageUtils.deleteImageFile(currentState.selectedImageUri.toString())
+                        }
+
+                        newImagePath
+                    }
+                    else -> {
+                        currentState.selectedImageUri
+                    }
                 }
 
-                if (currentState.selectedImageUri != null && imagePath == null) {
-                    _state.value = currentState.copy(
-                        isLoading = false,
-                        error = "Image size exceeds 2MB limit"
+                val result = if (currentState.isEditMode && currentState.noteId != null) {
+                    val existingNote = getNoteByIdUseCase(currentState.noteId).getOrNull()
+                    val updatedNote = Note(
+                        id = currentState.noteId,
+                        title = currentState.title.trim(),
+                        content = currentState.content.trim(),
+                        imagePath = finalImagePath.toString(),
+                        createdAt = existingNote?.createdAt ?: System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
                     )
-                    return@launch
+                    updateNoteUseCase(updatedNote)
+                } else {
+                    val newNote = Note(
+                        title = currentState.title.trim(),
+                        content = currentState.content.trim(),
+                        imagePath = finalImagePath.toString()
+                    )
+                    addNoteUseCase(newNote)
                 }
 
-                val note = Note(
-                    title = currentState.title.trim(),
-                    content = currentState.content.trim(),
-                    imagePath = imagePath
-                )
-
-                addNoteUseCase(note)
+                result
                     .onSuccess {
                         _state.value = currentState.copy(
                             isLoading = false,
