@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -78,6 +79,23 @@ fun AddNoteScreen(
                 modifier = Modifier.padding(horizontal = 15.dp),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
+            Spacer(Modifier.weight(1f))
+            if(state.isEditMode) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(100.dp))
+                        .size(45.dp)
+                        .background(Color(0xFF171C26))
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "delete",
+                        tint = Color.White,
+                        modifier = Modifier.size(25.dp)
+                    )
+                }
+            }
         }
 
         if(state.isLoadingNote) {
