@@ -1,7 +1,8 @@
 package com.example.note.presentation.screens
 
 import CustomSearchBar
-import NoteCard
+import com.example.note.presentation.components.NoteCard
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,25 +25,48 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.note.mvi.viewmodels.NotesViewModelV2
 import com.example.note.presentation.notes.NotesIntent
-import com.example.note.presentation.notes.NotesViewModel
+import com.example.note.presentation.notes.NotesSideEffect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun NotesListScreen(
     onAddNoteClick: () -> Unit,
     onNavigateToEditNote: (Long) -> Unit,
-    viewModel: NotesViewModel = hiltViewModel()
+    viewModel: NotesViewModelV2 = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collectLatest { sideEffect ->
+            when (sideEffect) {
+                is NotesSideEffect.ShowToast -> {
+                    Toast.makeText(context, sideEffect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    val scope = rememberCoroutineScope()
+    fun sendIntent(intent: NotesIntent) {
+        scope.launch {
+            viewModel.processIntent(intent)
+        }
+    }
 
     Column (
         modifier = Modifier
@@ -86,7 +110,7 @@ fun NotesListScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
-                                onClick = { viewModel.handleIntent(NotesIntent.LoadNotes) }
+                                onClick = { sendIntent(NotesIntent.LoadNotes) }
                             ) {
                                 Text("Retry")
                             }
@@ -138,7 +162,7 @@ fun NotesListScreen(
                                     onNavigateToEditNote(note.id)
                                 },
                                 onDeleteClick = {
-                                    viewModel.handleIntent(NotesIntent.DeleteNote(note))
+                                    sendIntent(NotesIntent.DeleteNote(note))
                                 }
                             )
                         }
