@@ -83,6 +83,7 @@ class AddNoteViewModel @Inject constructor(
     }
 
     private fun selectImage(uri: Uri?) {
+        _state.value = _state.value.copy(isCurrentImageChanged = true)
         _state.value = _state.value.copy(selectedImageUri = uri)
         if (uri == null) {
             _state.value = _state.value.copy(error = null)
@@ -120,7 +121,7 @@ class AddNoteViewModel @Inject constructor(
                         }
 
                         if (currentState.isEditMode) {
-                            ImageUtils.deleteImageFile(currentState.selectedImageUri.toString())
+                            ImageUtils.deleteImageFile(currentState.currentImagePath.toString())
                         }
 
                         newImagePath
@@ -136,7 +137,7 @@ class AddNoteViewModel @Inject constructor(
                         id = currentState.noteId,
                         title = currentState.title.trim(),
                         content = currentState.content.trim(),
-                        imagePath = finalImagePath.toString(),
+                        imagePath = if(finalImagePath == "null" || finalImagePath == null) null else finalImagePath.toString(),
                         createdAt = existingNote?.createdAt ?: System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis()
                     )
@@ -145,7 +146,7 @@ class AddNoteViewModel @Inject constructor(
                     val newNote = Note(
                         title = currentState.title.trim(),
                         content = currentState.content.trim(),
-                        imagePath = finalImagePath.toString()
+                        imagePath = if(finalImagePath == "null" || finalImagePath == null) null else finalImagePath.toString()
                     )
                     addNoteUseCase(newNote)
                 }
