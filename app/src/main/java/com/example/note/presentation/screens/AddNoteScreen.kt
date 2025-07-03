@@ -1,5 +1,6 @@
 package com.example.note.presentation.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,28 +26,48 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.note.mvi.viewmodels.AddNotesViewModelV2
 import com.example.note.presentation.add_note.AddNoteIntent
-import com.example.note.presentation.add_note.AddNoteViewModel
+import com.example.note.presentation.add_note.AddNoteSideEffect
 import com.example.note.presentation.components.ImagePicker
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddNoteScreen(
     onBackClick: () -> Unit,
-    viewModel: AddNoteViewModel = hiltViewModel()
+    viewModel: AddNotesViewModelV2 = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    LaunchedEffect(state.isNoteSaved) {
-        if(state.isNoteSaved) {
-            onBackClick()
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collectLatest { sideEffect ->
+            when (sideEffect) {
+                is AddNoteSideEffect.ShowToast -> {
+                    Toast.makeText(context, sideEffect.message, Toast.LENGTH_SHORT).show()
+                }
+                is AddNoteSideEffect.NavigateBack -> {
+                    onBackClick()
+                }
+            }
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    fun sendIntent(intent: AddNoteIntent) {
+        scope.launch {
+            viewModel.processIntent(intent)
         }
     }
 
@@ -112,7 +133,7 @@ fun AddNoteScreen(
 
                 OutlinedTextField(
                     value = state.title,
-                    onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateTitle(it)) },
+                    onValueChange = { sendIntent(AddNoteIntent.UpdateTitle(it)) },
                     label = { Text("Title") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -124,7 +145,7 @@ fun AddNoteScreen(
 
                 OutlinedTextField(
                     value = state.content,
-                    onValueChange = { viewModel.handleIntent(AddNoteIntent.UpdateContent(it)) },
+                    onValueChange = { sendIntent(AddNoteIntent.UpdateContent(it)) },
                     label = {Text("Content")},
                     modifier = Modifier
                         .fillMaxWidth()
@@ -139,12 +160,12 @@ fun AddNoteScreen(
                 ImagePicker(
                     selectedImageUri = state.selectedImageUri,
                     onImageSelected = { uri ->
-                        viewModel.handleIntent(AddNoteIntent.SelectImage(uri))
+                        sendIntent(AddNoteIntent.SelectImage(uri))
                     }
                 )
 
                 IconButton(
-                    onClick = { viewModel.handleIntent(AddNoteIntent.SaveNote) },
+                    onClick = { sendIntent(AddNoteIntent.SaveNote) },
                     enabled = !state.isLoading && state.title.isNotBlank()
                 ) {
                     if (state.isLoading) {

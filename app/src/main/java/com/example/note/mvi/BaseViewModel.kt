@@ -51,7 +51,8 @@ abstract class BaseViewModel<ViewIntent, ViewState, ViewSideEffect, Change: Part
     suspend fun processIntent(intent: ViewIntent) {
         _intentFlow.emit(intent)
     }
-        fun Flow<Change>.toSideEffect(): Flow<Change> {
+
+    fun Flow<Change>.toSideEffect(): Flow<Change> {
         return onEach { change ->
             changeSideToEffect(change).forEach {
                 Log.d("SIDE EFFECT", it.toString())
