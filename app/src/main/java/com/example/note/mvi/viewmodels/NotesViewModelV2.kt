@@ -48,7 +48,7 @@ class NotesViewModelV2 @Inject constructor(
         }
     }
 
-    init {
+    fun loadNotesOnStart() {
         viewModelScope.launch {
             processIntent(NotesIntent.LoadNotes)
         }
