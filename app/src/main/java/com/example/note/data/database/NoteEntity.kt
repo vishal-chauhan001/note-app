@@ -8,7 +8,7 @@ import com.example.note.domain.model.Note
 @Entity(tableName = "notes")
 data class NoteEntity (
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    val id: Long,
     val title: String,
     val content: String,
     val imagePath: String? = null,

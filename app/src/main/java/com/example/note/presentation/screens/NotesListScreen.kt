@@ -53,6 +53,10 @@ fun NotesListScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        viewModel.loadNotesOnStart()
+    }
+
+    LaunchedEffect(Unit) {
         viewModel.sideEffect.collectLatest { sideEffect ->
             when (sideEffect) {
                 is NotesSideEffect.ShowToast -> {
